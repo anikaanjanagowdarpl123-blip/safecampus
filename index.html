@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SafeCampus – Disaster Preparedness</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <header>
+    <h1>🛡️ SafeCampus</h1>
+    <p>Disaster Preparedness System</p>
+  </header>
+
+  <main>
+
+    <!-- DISASTER SELECTOR -->
+    <section class="card">
+      <h2>Select Disaster Type</h2>
+      <select id="disasterSelect" onchange="loadDisaster()">
+        <option value="">-- Choose a Disaster --</option>
+        <option value="EARTHQUAKE">🌍 Earthquake</option>
+        <option value="FIRE">🔥 Fire</option>
+        <option value="FLOOD">🌊 Flood</option>
+        <option value="CYCLONE">🌀 Cyclone</option>
+      </select>
+    </section>
+
+    <!-- SIDE BY SIDE WRAPPER -->
+    <div class="side-by-side">
+
+      <!-- SAFETY ACTIONS -->
+      <section class="card" id="actionsCard" style="display:none">
+        <h2>⚡ Immediate Safety Actions</h2>
+        <ol id="actionsList"></ol>
+      </section>
+
+      <!-- CHECKLIST -->
+      <section class="card" id="checklistCard" style="display:none">
+        <h2>✅ Preparedness Checklist</h2>
+        <div id="checklistItems"></div>
+        <div class="score-box">
+          <p>Preparedness Score: <strong id="scoreDisplay">0%</strong></p>
+          <p>Status: <strong id="statusDisplay">--</strong></p>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- EMERGENCY CONTACTS -->
+    <section class="card" id="contactsCard" style="display:none">
+      <h2>📞 Emergency Contacts</h2>
+      <ul id="contactsList"></ul>
+    </section>
+
+    <!-- JSON SCHEMA OUTPUT -->
+    <section class="card" id="schemaCard" style="display:none">
+      <h2>🗂️ JSON Schema Output</h2>
+      <pre id="jsonOutput"></pre>
+    </section>
+
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
