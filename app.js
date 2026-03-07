@@ -19,7 +19,7 @@ const disasterData = {
       "Important documents are stored safely"
     ],
     emergency_contacts: [
-      { name: "🚔 Police", number: "100" },
+      { name: "🚔 Police", number: "7676154914" },
       { name: "🚒 Fire Department", number: "101" },
       { name: "🚑 Ambulance", number: "108" },
       { name: "🏥 NDRF Helpline", number: "01124363260" },
@@ -67,7 +67,7 @@ const disasterData = {
       "Family evacuation plan is discussed and ready"
     ],
     emergency_contacts: [
-      { name: "🚔 Police", number: "100" },
+      { name: "🚔 Police", number: "7676154914" },
       { name: "🚑 Ambulance", number: "108" },
       { name: "🌊 Flood Control Room", number: "1070" },
       { name: "🏥 NDRF Helpline", number: "01124363260" },
@@ -91,7 +91,7 @@ const disasterData = {
       "Neighbours and family are informed and prepared"
     ],
     emergency_contacts: [
-      { name: "🚔 Police", number: "100" },
+      { name: "🚔 Police", number: "7676154914" },
       { name: "🚒 Fire Department", number: "101" },
       { name: "🚑 Ambulance", number: "108" },
       { name: "🌀 Cyclone Warning Centre", number: "18001801717" },
