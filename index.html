@@ -27,7 +27,6 @@
       </select>
     </section>
 
-    <!-- SIDE BY SIDE WRAPPER -->
     <div class="side-by-side">
 
       <!-- SAFETY ACTIONS -->
@@ -52,6 +51,16 @@
     <section class="card" id="contactsCard" style="display:none">
       <h2>📞 Emergency Contacts</h2>
       <ul id="contactsList"></ul>
+    </section>
+
+    <!-- GPS EVACUATION -->
+    <section class="card" id="gpsCard" style="display:none">
+      <h2>📍 GPS Evacuation Route</h2>
+      <p id="gpsStatus">Click the button below to detect your location.</p>
+      <div class="gps-buttons">
+        <button id="locateBtn" class="btn-locate" onclick="getLocation()">📡 Detect My Location</button>
+        <button id="evacuateBtn" class="btn-evacuate" style="display:none">🗺️ Get Evacuation Route</button>
+      </div>
     </section>
 
     <!-- JSON SCHEMA OUTPUT -->
