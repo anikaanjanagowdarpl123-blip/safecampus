@@ -31,7 +31,7 @@ safecampus/
 ## ▶️ How to Run Locally
 1. Clone the repository
 ```bash
-   git clone https://github.com/YOURUSERNAME/safecampus.git
+   git clone https://anikaanjanagowdarpl123-blip.github.io/safecampus/
 ```
 2. Open the folder
 ```bash
