@@ -19,12 +19,13 @@ const disasterData = {
       "Important documents are stored safely"
     ],
     emergency_contacts: [
-      { name: "🚔 Police", number: "7676154914" },
+      { name: "🚔 Police", number: "100" },
       { name: "🚒 Fire Department", number: "101" },
       { name: "🚑 Ambulance", number: "108" },
       { name: "🏥 NDRF Helpline", number: "01124363260" },
       { name: "📞 Disaster Management", number: "1078" }
-    ]
+    ],
+    evacuation_search: "open ground OR park near me"
   },
   FIRE: {
     safety_actions: [
@@ -48,7 +49,8 @@ const disasterData = {
       { name: "🚔 Police", number: "100" },
       { name: "🏥 Burns Emergency", number: "18001801104" },
       { name: "📞 Disaster Management", number: "1078" }
-    ]
+    ],
+    evacuation_search: "hospital OR open ground near me"
   },
   FLOOD: {
     safety_actions: [
@@ -67,12 +69,13 @@ const disasterData = {
       "Family evacuation plan is discussed and ready"
     ],
     emergency_contacts: [
-      { name: "🚔 Police", number: "7676154914" },
+      { name: "🚔 Police", number: "100" },
       { name: "🚑 Ambulance", number: "108" },
       { name: "🌊 Flood Control Room", number: "1070" },
       { name: "🏥 NDRF Helpline", number: "01124363260" },
       { name: "📞 Disaster Management", number: "1078" }
-    ]
+    ],
+    evacuation_search: "high ground OR flood shelter near me"
   },
   CYCLONE: {
     safety_actions: [
@@ -91,12 +94,13 @@ const disasterData = {
       "Neighbours and family are informed and prepared"
     ],
     emergency_contacts: [
-      { name: "🚔 Police", number: "7676154914" },
+      { name: "🚔 Police", number: "100" },
       { name: "🚒 Fire Department", number: "101" },
       { name: "🚑 Ambulance", number: "108" },
       { name: "🌀 Cyclone Warning Centre", number: "18001801717" },
       { name: "📞 Disaster Management", number: "1078" }
-    ]
+    ],
+    evacuation_search: "cyclone shelter OR community hall near me"
   }
 };
 
@@ -104,6 +108,7 @@ const disasterData = {
 // CURRENT STATE
 // ============================================
 let currentSchema = {};
+let userLocation = null;
 
 // ============================================
 // MAIN FUNCTION - Load Disaster Info
@@ -123,6 +128,12 @@ function loadDisaster() {
   document.getElementById("checklistCard").style.display = "block";
   document.getElementById("contactsCard").style.display = "block";
   document.getElementById("schemaCard").style.display = "block";
+  document.getElementById("gpsCard").style.display = "block";
+
+  // Reset GPS state on disaster change
+  document.getElementById("gpsStatus").textContent = "Click the button below to detect your location.";
+  document.getElementById("evacuateBtn").style.display = "none";
+  userLocation = null;
 }
 
 // ============================================
@@ -216,9 +227,70 @@ function buildSchema(disasterType, data) {
     preparedness_score: 0,
     safety_actions: data.safety_actions,
     emergency_contacts: data.emergency_contacts,
+    user_location: null,
+    evacuation_route: null,
     status: "Needs Improvement"
   };
 
   document.getElementById("jsonOutput").textContent = JSON.stringify(currentSchema, null, 2);
   console.log("SafeCampus JSON Schema:", currentSchema);
+}
+
+// ============================================
+// GPS - GET USER LOCATION
+// ============================================
+function getLocation() {
+  const statusEl = document.getElementById("gpsStatus");
+  const btn = document.getElementById("locateBtn");
+
+  if (!navigator.geolocation) {
+    statusEl.textContent = "❌ Geolocation is not supported by your browser.";
+    return;
+  }
+
+  statusEl.innerHTML = "📡 Detecting your location...";
+  btn.disabled = true;
+
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      const lat = position.coords.latitude.toFixed(6);
+      const lng = position.coords.longitude.toFixed(6);
+      userLocation = { latitude: parseFloat(lat), longitude: parseFloat(lng) };
+
+      statusEl.innerHTML = `
+        ✅ <strong>Location Detected!</strong><br>
+        📌 Latitude: <strong>${lat}</strong><br>
+        📌 Longitude: <strong>${lng}</strong><br>
+        🔗 <a href="https://maps.google.com/?q=${lat},${lng}" target="_blank" style="color:#f97316;">View My Location on Map</a>
+      `;
+      btn.disabled = false;
+      btn.textContent = "🔄 Re-detect Location";
+
+      // Update schema
+      currentSchema.user_location = userLocation;
+
+      const selected = document.getElementById("disasterSelect").value;
+      const searchQuery = disasterData[selected].evacuation_search;
+      const mapsUrl = `https://www.google.com/maps/search/${encodeURIComponent(searchQuery)}/@${lat},${lng},15z`;
+      currentSchema.evacuation_route = mapsUrl;
+      document.getElementById("jsonOutput").textContent = JSON.stringify(currentSchema, null, 2);
+
+      // Show evacuate button
+      const evacuateBtn = document.getElementById("evacuateBtn");
+      evacuateBtn.style.display = "inline-block";
+      evacuateBtn.onclick = () => window.open(mapsUrl, "_blank");
+
+      // Show SOS button
+      const sosBtn = document.getElementById("sosBtn");
+      sosBtn.style.display = "inline-block";
+      const selected2 = document.getElementById("disasterSelect").value;
+      const mapsLink = `https://maps.google.com/?q=${lat},${lng}`;
+      const msg = `🆘 EMERGENCY ALERT! I am in a ${selected2} situation. My location: ${mapsLink} Please send help immediately!`;
+      sosBtn.href = `sms:?body=${encodeURIComponent(msg)}`;
+    },
+    (error) => {
+      statusEl.textContent = "❌ Unable to get location. Please allow location access in your browser.";
+      btn.disabled = false;
+    }
+  );
 }

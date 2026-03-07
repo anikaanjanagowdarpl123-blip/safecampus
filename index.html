@@ -54,14 +54,17 @@
     </section>
 
     <!-- GPS EVACUATION -->
-    <section class="card" id="gpsCard" style="display:block">
-      <h2>📍 GPS Evacuation Route</h2>
-      <p id="gpsStatus">Click the button below to detect your location.</p>
-      <div class="gps-buttons">
-        <button id="locateBtn" class="btn-locate" onclick="getLocation()">📡 Detect My Location</button>
-        <button id="evacuateBtn" class="btn-evacuate" style="display:none">🗺️ Get Evacuation Route</button>
-      </div>
-    </section>
+    <!-- GPS EVACUATION -->
+<section class="card gps-card" id="gpsCard" style="display:block">
+  <h2>📍 GPS Evacuation Route</h2>
+  <p class="gps-description">Detect your real-time location and find the nearest evacuation zone instantly.</p>
+  <div id="gpsStatus" class="gps-status-box"></div>
+  <div class="gps-buttons">
+    <button id="locateBtn" class="btn-locate" onclick="getLocation()">📡 Detect My Location</button>
+    <button id="evacuateBtn" class="btn-evacuate" style="display:none">🗺️ Get Evacuation Route</button>
+    <a id="sosBtn" class="btn-sos" style="display:none">🆘 Send SOS Message</a>
+  </div>
+</section>
 
     <!-- JSON SCHEMA OUTPUT -->
     <section class="card" id="schemaCard" style="display:none">
