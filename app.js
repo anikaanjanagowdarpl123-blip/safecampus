@@ -130,9 +130,8 @@ function loadDisaster() {
   document.getElementById("schemaCard").style.display = "block";
   document.getElementById("gpsCard").style.display = "block";
 
-  // Reset GPS state on disaster change
+  // Reset GPS status text only
   document.getElementById("gpsStatus").textContent = "Click the button below to detect your location.";
-  document.getElementById("evacuateBtn").style.display = "none";
   userLocation = null;
 }
 
@@ -189,108 +188,4 @@ function updateScore() {
   checkboxes.forEach(cb => { if (cb.checked) checked++; });
 
   const score = Math.round((checked / total) * 100);
-  const status = score >= 60 ? "Prepared ✅" : "Needs Improvement ⚠️";
-
-  document.getElementById("scoreDisplay").textContent = score + "%";
-  document.getElementById("statusDisplay").textContent = status;
-
-  currentSchema.preparedness_score = score;
-  currentSchema.status = score >= 60 ? "Prepared" : "Needs Improvement";
-  document.getElementById("jsonOutput").textContent = JSON.stringify(currentSchema, null, 2);
-}
-
-// ============================================
-// RENDER EMERGENCY CONTACTS
-// ============================================
-function renderContacts(contacts) {
-  const list = document.getElementById("contactsList");
-  list.innerHTML = "";
-  contacts.forEach(contact => {
-    const li = document.createElement("li");
-    li.innerHTML = `
-      <span class="contact-name">${contact.name}</span>
-      <div class="contact-buttons">
-        <a href="tel:${contact.number}" class="btn-call">📞 Call</a>
-        <a href="sms:${contact.number}" class="btn-sms">💬 Message</a>
-      </div>
-    `;
-    list.appendChild(li);
-  });
-}
-
-// ============================================
-// BUILD JSON SCHEMA
-// ============================================
-function buildSchema(disasterType, data) {
-  currentSchema = {
-    disaster_type: disasterType,
-    preparedness_score: 0,
-    safety_actions: data.safety_actions,
-    emergency_contacts: data.emergency_contacts,
-    user_location: null,
-    evacuation_route: null,
-    status: "Needs Improvement"
-  };
-
-  document.getElementById("jsonOutput").textContent = JSON.stringify(currentSchema, null, 2);
-  console.log("SafeCampus JSON Schema:", currentSchema);
-}
-
-// ============================================
-// GPS - GET USER LOCATION
-// ============================================
-function getLocation() {
-  const statusEl = document.getElementById("gpsStatus");
-  const btn = document.getElementById("locateBtn");
-
-  if (!navigator.geolocation) {
-    statusEl.textContent = "❌ Geolocation is not supported by your browser.";
-    return;
-  }
-
-  statusEl.innerHTML = "📡 Detecting your location...";
-  btn.disabled = true;
-
-  navigator.geolocation.getCurrentPosition(
-    (position) => {
-      const lat = position.coords.latitude.toFixed(6);
-      const lng = position.coords.longitude.toFixed(6);
-      userLocation = { latitude: parseFloat(lat), longitude: parseFloat(lng) };
-
-      statusEl.innerHTML = `
-        ✅ <strong>Location Detected!</strong><br>
-        📌 Latitude: <strong>${lat}</strong><br>
-        📌 Longitude: <strong>${lng}</strong><br>
-        🔗 <a href="https://maps.google.com/?q=${lat},${lng}" target="_blank" style="color:#f97316;">View My Location on Map</a>
-      `;
-      btn.disabled = false;
-      btn.textContent = "🔄 Re-detect Location";
-
-      // Update schema
-      currentSchema.user_location = userLocation;
-
-      const selected = document.getElementById("disasterSelect").value;
-      const searchQuery = disasterData[selected].evacuation_search;
-      const mapsUrl = `https://www.google.com/maps/search/${encodeURIComponent(searchQuery)}/@${lat},${lng},15z`;
-      currentSchema.evacuation_route = mapsUrl;
-      document.getElementById("jsonOutput").textContent = JSON.stringify(currentSchema, null, 2);
-
-      // Show evacuate button
-      const evacuateBtn = document.getElementById("evacuateBtn");
-      evacuateBtn.style.display = "inline-block";
-      evacuateBtn.onclick = () => window.open(mapsUrl, "_blank");
-
-      // Show SOS button
-      const sosBtn = document.getElementById("sosBtn");
-      sosBtn.style.display = "inline-block";
-      const selected2 = document.getElementById("disasterSelect").value;
-      const mapsLink = `https://maps.google.com/?q=${lat},${lng}`;
-      const msg = `🆘 EMERGENCY ALERT! I am in a ${selected2} situation. My location: ${mapsLink} Please send help immediately!`;
-      sosBtn.href = `sms:?body=${encodeURIComponent(msg)}`;
-    },
-    (error) => {
-      statusEl.textContent = "❌ Unable to get location. Please allow location access in your browser.";
-      btn.disabled = false;
-    }
-  );
-}
+  const status = scor
