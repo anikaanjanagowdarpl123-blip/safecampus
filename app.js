@@ -111,6 +111,15 @@ let currentSchema = {};
 let userLocation = null;
 
 // ============================================
+// ON PAGE LOAD - hide GPS action buttons until location detected
+// ============================================
+window.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("evacuateBtn").style.display = "none";
+  document.getElementById("sosBtn").style.display = "none";
+  document.getElementById("gpsStatus").textContent = "Select a disaster type above, then detect your location.";
+});
+
+// ============================================
 // MAIN FUNCTION - Load Disaster Info
 // ============================================
 function loadDisaster() {
@@ -130,9 +139,15 @@ function loadDisaster() {
   document.getElementById("schemaCard").style.display = "block";
   document.getElementById("gpsCard").style.display = "block";
 
-  // Reset GPS status text only
-  document.getElementById("gpsStatus").textContent = "Click the button below to detect your location.";
+  // Reset GPS state when disaster changes
   userLocation = null;
+  document.getElementById("gpsStatus").textContent = "Click the button below to detect your location.";
+  document.getElementById("locateBtn").textContent = "📡 Detect My Location";
+  document.getElementById("locateBtn").disabled = false;
+
+  // FIX: Hide evacuate/SOS buttons until location is freshly detected
+  document.getElementById("evacuateBtn").style.display = "none";
+  document.getElementById("sosBtn").style.display = "none";
 }
 
 // ============================================
@@ -173,8 +188,9 @@ function renderChecklist(items) {
     container.appendChild(div);
   });
 
+  // FIX: Reset score display properly on each disaster load
   document.getElementById("scoreDisplay").textContent = "0%";
-  document.getElementById("statusDisplay").textContent = "Needs Improvement";
+  document.getElementById("statusDisplay").textContent = "Needs Improvement ⚠️";
 }
 
 // ============================================
@@ -183,9 +199,122 @@ function renderChecklist(items) {
 function updateScore() {
   const checkboxes = document.querySelectorAll("#checklistItems input[type='checkbox']");
   const total = checkboxes.length;
-  let checked = 0;
+  if (total === 0) return;
 
+  let checked = 0;
   checkboxes.forEach(cb => { if (cb.checked) checked++; });
 
   const score = Math.round((checked / total) * 100);
-  const status = scor
+  const status = score >= 60 ? "Prepared ✅" : "Needs Improvement ⚠️";
+
+  document.getElementById("scoreDisplay").textContent = score + "%";
+  document.getElementById("statusDisplay").textContent = status;
+
+  currentSchema.preparedness_score = score;
+  currentSchema.status = score >= 60 ? "Prepared" : "Needs Improvement";
+  document.getElementById("jsonOutput").textContent = JSON.stringify(currentSchema, null, 2);
+}
+
+// ============================================
+// RENDER EMERGENCY CONTACTS
+// ============================================
+function renderContacts(contacts) {
+  const list = document.getElementById("contactsList");
+  list.innerHTML = "";
+  contacts.forEach(contact => {
+    const li = document.createElement("li");
+    li.innerHTML = `
+      <span class="contact-name">${contact.name}</span>
+      <div class="contact-buttons">
+        <a href="tel:${contact.number}" class="btn-call">📞 Call</a>
+        <a href="sms:${contact.number}" class="btn-sms">💬 Message</a>
+      </div>
+    `;
+    list.appendChild(li);
+  });
+}
+
+// ============================================
+// BUILD JSON SCHEMA
+// ============================================
+function buildSchema(disasterType, data) {
+  currentSchema = {
+    disaster_type: disasterType,
+    preparedness_score: 0,
+    safety_actions: data.safety_actions,
+    emergency_contacts: data.emergency_contacts,
+    user_location: null,
+    evacuation_route: null,
+    status: "Needs Improvement"
+  };
+
+  document.getElementById("jsonOutput").textContent = JSON.stringify(currentSchema, null, 2);
+}
+
+// ============================================
+// GPS - GET USER LOCATION
+// ============================================
+function getLocation() {
+  const statusEl = document.getElementById("gpsStatus");
+  const btn = document.getElementById("locateBtn");
+
+  // FIX: Guard against GPS being used before a disaster is selected
+  const selected = document.getElementById("disasterSelect").value;
+  if (!selected) {
+    statusEl.textContent = "⚠️ Please select a disaster type first before detecting your location.";
+    return;
+  }
+
+  if (!navigator.geolocation) {
+    statusEl.textContent = "❌ Geolocation is not supported by your browser.";
+    return;
+  }
+
+  statusEl.innerHTML = "📡 Detecting your location...";
+  btn.disabled = true;
+
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      const lat = position.coords.latitude.toFixed(6);
+      const lng = position.coords.longitude.toFixed(6);
+      userLocation = { latitude: parseFloat(lat), longitude: parseFloat(lng) };
+
+      statusEl.innerHTML = `
+        ✅ <strong>Location Detected!</strong><br>
+        📌 Latitude: <strong>${lat}</strong><br>
+        📌 Longitude: <strong>${lng}</strong><br>
+        🔗 <a href="https://maps.google.com/?q=${lat},${lng}" target="_blank" style="color:#f97316;">View My Location on Map</a>
+      `;
+      btn.disabled = false;
+      btn.textContent = "🔄 Re-detect Location";
+
+      // Update schema
+      currentSchema.user_location = userLocation;
+
+      const searchQuery = disasterData[selected].evacuation_search;
+      const mapsUrl = `https://www.google.com/maps/search/${encodeURIComponent(searchQuery)}/@${lat},${lng},15z`;
+      currentSchema.evacuation_route = mapsUrl;
+      document.getElementById("jsonOutput").textContent = JSON.stringify(currentSchema, null, 2);
+
+      // FIX: Show and wire up evacuate button only after location is known
+      const evacuateBtn = document.getElementById("evacuateBtn");
+      evacuateBtn.style.display = "inline-block";
+      evacuateBtn.onclick = () => window.open(mapsUrl, "_blank");
+
+      // FIX: Show and wire up SOS button only after location is known
+      const sosBtn = document.getElementById("sosBtn");
+      const mapsLink = `https://maps.google.com/?q=${lat},${lng}`;
+      const msg = `🆘 EMERGENCY ALERT! I am in a ${selected} situation. My location: ${mapsLink} Please send help immediately!`;
+      sosBtn.href = `sms:?body=${encodeURIComponent(msg)}`;
+      sosBtn.style.display = "inline-block";
+    },
+    (error) => {
+      let errMsg = "❌ Unable to get location. Please allow location access in your browser.";
+      if (error.code === 1) errMsg = "❌ Location access denied. Please enable location permissions in your browser settings.";
+      else if (error.code === 2) errMsg = "❌ Location unavailable. Please try again.";
+      else if (error.code === 3) errMsg = "❌ Location request timed out. Please try again.";
+      statusEl.textContent = errMsg;
+      btn.disabled = false;
+    }
+  );
+}
